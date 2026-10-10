@@ -1,0 +1,3 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" authoring-id="-1165872441">
+    <ui:TextField label="" placeholder-text="1:24.5" readonly="true" hide-placeholder-on-focus="false" is-delayed="false" style="-unity-font-definition: url(&quot;project://database/Assets/Font/JacquardaBastarda9-Regular.ttf?fileID=12800000&amp;guid=effe2a20ca1ce4def81ffa9fb82fbdce&amp;type=3#JacquardaBastarda9-Regular&quot;); -unity-font-style: bold; font-size: 24px; -unity-text-align: middle-center; border-left-width: 14; border-right-width: 401; border-top-width: 3; border-top-left-radius: 0; border-top-right-radius: 0;"/>
+</ui:UXML>
