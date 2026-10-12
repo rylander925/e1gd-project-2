@@ -8,18 +8,22 @@ public class TargetBreakable : MonoBehaviour
     Light2D light;
     Color defaultColor = Color.softBlue;
     Color brokenColor = Color.goldenRod;
+    SpriteRenderer sprite;
+    float defaultOpacity = 0.6f;
+    float brokenOpacity = 0.2f;
 
-    void Start()
+    void Awake()
     {
         score = FindAnyObjectByType<Heart>();
         light = gameObject.GetComponent<Light2D>();
-        light.color = defaultColor;
+        sprite = gameObject.GetComponent<SpriteRenderer>();
+        defaultColor.a = defaultOpacity;
     }
 
-    // Update is called once per frame
-    void Update()
+    void Start()
     {
-        
+        light.color = defaultColor;
+        sprite.color = defaultColor;
     }
 
     void OnJointBreak2D(Joint2D joint)
@@ -27,5 +31,8 @@ public class TargetBreakable : MonoBehaviour
         Debug.Log("Broke");
         score.AddJoy("TargetBreakable");
         light.color = brokenColor;
+        Color temp = defaultColor;
+        temp.a = brokenOpacity;
+        sprite.color = temp;
     }
 }

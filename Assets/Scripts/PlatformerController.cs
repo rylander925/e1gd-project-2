@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.AI;
@@ -13,17 +14,18 @@ public class PlatformerController : MonoBehaviour
 {
     [SerializeField] Rigidbody2D rb;
     [SerializeField] CircleCollider2D collider;
-    SpriteLibrary spriteLibrary;
     SpriteResolver spriteResolver;
-    Sprite sprite;
     [SerializeField] float moveSpeed; 
     [SerializeField] float jumpForce = 10;
     [SerializeField] public float dashForce = 15;
+    [SerializeField] public float maxGroundingDistance = 20f; //Determines how far above the ground player can be and still press space to ground themselves.
     [SerializeField] DashLineRenderer dashLine;
+    [SerializeField] GroundLineRenderer groundLine;
 
+    public bool invertDash = true;
     bool isRebounding = false;
-    bool isDashHeld = true;
     bool canDash = true;
+    bool canGround = false;
     float movementX;
     float defaultDeltaTime;
     float initialTimeScale;
@@ -31,14 +33,21 @@ public class PlatformerController : MonoBehaviour
 
     float rayPositionOffset; //! might break if obj is a child component
     Vector3 dashFacingVector;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    string dashRaycastHitName = "";
+    
     void Awake()
     {
         dashLine = GetComponentInChildren<DashLineRenderer>();
-        spriteLibrary = GetComponent<SpriteLibrary>();
+        dashLine.gameObject.SetActive(true);
+        dashLine.enabled = false;
+
+        groundLine = GetComponentInChildren<GroundLineRenderer>();
+        groundLine.gameObject.SetActive(true);
+        groundLine.enabled = false;
+
         spriteResolver = GetComponent<SpriteResolver>();
         spriteResolver.SetCategoryAndLabel("cat", "cat");
-        dashLine.gameObject.SetActive(true);
+
         defaultDeltaTime = Time.fixedDeltaTime;
         rayPositionOffset = transform.lossyScale.y * collider.radius * 0.8f;
     }
@@ -53,18 +62,31 @@ public class PlatformerController : MonoBehaviour
         movementX = value.Get<Vector2>().x;
     }
 
-    void OnJump()
+    void OnJump(InputValue value)
     {
-        if (IsOnGround())
+        if (IsOnGround() && value.isPressed)
         {
             rb.AddForceY(jumpForce, ForceMode2D.Impulse);
+            return;
         } 
-        else if(IsOnGround(20f))
+        RaycastHit2D groundRay = IsOnGround(maxGroundingDistance);
+        if(groundRay)
         {
-            rb.linearVelocity = Vector2.down * dashForce;
+            if (value.isPressed)
+            {
+                canGround = true;
+                groundLine.enabled = true;
+            }
+            else if (canGround)
+            {
+                rb.linearVelocity = Vector2.down * dashForce;
+                groundLine.enabled = false;
+                canGround = false;
+            }
         }
     }
 
+    //Propels the player in direction of mouse. If close to a wall, will rebound with extra force.
     void OnDash(InputValue value)
     {   
         if (!canDash)
@@ -76,7 +98,6 @@ public class PlatformerController : MonoBehaviour
         if (value.isPressed)
         {
             dashLine.enabled = true;
-            isDashHeld = true;
             spriteResolver.SetCategoryAndLabel("cat", "cat_mad");
             initialTimeScale = Time.timeScale;
             Time.timeScale = dashTimeScale;
@@ -84,7 +105,6 @@ public class PlatformerController : MonoBehaviour
             return;
         }
         dashLine.enabled = false;
-        isDashHeld = false;
         spriteResolver.SetCategoryAndLabel("cat", "cat");
         Time.timeScale = initialTimeScale;
         Time.fixedDeltaTime = defaultDeltaTime;
@@ -94,7 +114,7 @@ public class PlatformerController : MonoBehaviour
         //Dash in direction of mouse
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         Vector2 mouseDirection = ((Vector2)(mousePosition - transform.position)).normalized;
-        dashFacingVector = mouseDirection;
+        dashFacingVector = mouseDirection * (invertDash ? -1 : 1);
 
         //(For dash in direction of character orientation)
         //Vector3 facingVector = transform.rotation * Vector3.right; //Assumes initial "forward" direction is right
@@ -102,7 +122,6 @@ public class PlatformerController : MonoBehaviour
         //Search for reboundable objects
         int numRays = 7;
         RaycastHit2D shortestHit = new RaycastHit2D();
-        Vector3 normal = new Vector3(dashFacingVector.y, -dashFacingVector.x, 0);
         for (int i = 0; i < numRays; i++)
         {   
             //Calculate points along front of circle as ray origins
@@ -112,10 +131,9 @@ public class PlatformerController : MonoBehaviour
 
             Debug.DrawRay(rayPosition, dashFacingVector * reboundDistance, Color.yellow, 1);
             RaycastHit2D hit = Physics2D.Raycast(rayPosition, dashFacingVector, reboundDistance, LayerMask.GetMask("Wall")); //! Only rebounds off walls
-            if (shortestHit.collider == null || (shortestHit.collider != null && hit.distance < shortestHit.distance))
+            if (hit.collider != null && (shortestHit.collider == null || (shortestHit.collider != null && hit.distance < shortestHit.distance)))
             {
                 shortestHit = hit;
-                Debug.DrawRay(hit.point, hit.normal, Color.purple, 3);
             }
         }
 
@@ -125,6 +143,8 @@ public class PlatformerController : MonoBehaviour
         {
             isRebounding = true;
             rb.linearVelocity = dashFacingVector * 2 * dashForce;
+            Debug.DrawRay(shortestHit.point, shortestHit.normal, Color.darkViolet, 3);
+            dashRaycastHitName = shortestHit.collider.name;
         }
         canDash = false;
     }
@@ -135,7 +155,7 @@ public class PlatformerController : MonoBehaviour
         {
             canDash = true;
         }
-        if (isRebounding)
+        if (isRebounding && collision.collider.name == dashRaycastHitName)
         {
             Rebound(collision);
         }
@@ -143,7 +163,7 @@ public class PlatformerController : MonoBehaviour
 
     void OnCollisionStay2D(Collision2D collision)
     {
-        if (isRebounding)
+        if (isRebounding && collision.collider.name == dashRaycastHitName)
         {
             Rebound(collision);
         }
@@ -158,7 +178,7 @@ public class PlatformerController : MonoBehaviour
     }
 
     //Check if player is on ground using raycast. Only counts "Wall" layer.
-    bool IsOnGround(float castLength = 0.2f)
+    public RaycastHit2D IsOnGround(float castLength = 0.2f)
     {
         Vector3 footPosition = transform.position + rayPositionOffset * Vector3.down;
         return Physics2D.Raycast(footPosition ,Vector3.down, castLength, LayerMask.GetMask("Wall"));

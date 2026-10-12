@@ -7,7 +7,7 @@ public class DashLineRenderer : MonoBehaviour
     [SerializeField] PlatformerController player;
     [SerializeField] LineRenderer lineRenderer;
     [SerializeField] int numSegments = 2;
-    [SerializeField] float lineLengthFactor = 0.5f; //Line length = factor * 
+    [SerializeField] float lineLengthFactor = 0.5f; //Line length = factor * dashForce
     
     float lineLength;
     Vector3[] segments;
@@ -34,7 +34,7 @@ public class DashLineRenderer : MonoBehaviour
     void Update()
     {
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        Vector3 segmentDirection = ((Vector2)(mousePosition - player.transform.position)).normalized;
+        Vector3 segmentDirection = ((Vector2)(mousePosition - player.transform.position)).normalized * (player.invertDash ? -1 : 1);
         Vector3 startPos = player.transform.position + player.GetRayOffset() * 1.5f * segmentDirection;
 
         for (int i = 0; i < numSegments; i++)

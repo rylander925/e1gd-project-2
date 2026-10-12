@@ -9,7 +9,6 @@ public class Heart : MonoBehaviour
     List<SpriteRenderer> heartPixels = new List<SpriteRenderer>();
     [SerializeField] Timer timer;
     Rigidbody2D rb;
-    [SerializeField] float initialOpacity = 0;
     [SerializeField] Light2D light;
     [SerializeField] int numTargets = 3; 
 
@@ -20,7 +19,6 @@ public class Heart : MonoBehaviour
     [SerializeField] float WinInnerRadius = 10;
     [SerializeField] float WinOuterRadius = 20;
     bool hasWon = false;
-    [SerializeField] Vector2 winDestination = Vector2.zero;
     float joy = 0;  //Normalized value representing stage progress
     public float elapsedTime = 0;
     float winTime = 0;
