@@ -12,6 +12,7 @@ using UnityEngine.U2D.Animation;
 
 public class PlatformerController : MonoBehaviour
 {
+    Animator animator;
     [SerializeField] Rigidbody2D rb;
     [SerializeField] CircleCollider2D collider;
     SpriteResolver spriteResolver;
@@ -21,15 +22,23 @@ public class PlatformerController : MonoBehaviour
     [SerializeField] public float maxGroundingDistance = 20f; //Determines how far above the ground player can be and still press space to ground themselves.
     [SerializeField] DashLineRenderer dashLine;
     [SerializeField] GroundLineRenderer groundLine;
+    [SerializeField] SpriteRenderer spriteRenderer;
+    [SerializeField] public RespawnPoint respawnPoint;
 
     public bool invertDash = true;
+
+    bool isDashing = false;
+    bool isJumping = false;
     bool isRebounding = false;
     bool canDash = true;
     bool canGround = false;
+    bool isMovingRight = true;
     float movementX;
     float defaultDeltaTime;
     float initialTimeScale;
     float dashTimeScale = 0.5f;
+
+    public int coinsCollected = 0;
 
     float rayPositionOffset; //! might break if obj is a child component
     Vector3 dashFacingVector;
@@ -45,16 +54,40 @@ public class PlatformerController : MonoBehaviour
         groundLine.gameObject.SetActive(true);
         groundLine.enabled = false;
 
+        animator = gameObject.GetComponent<Animator>();
         spriteResolver = GetComponent<SpriteResolver>();
         spriteResolver.SetCategoryAndLabel("cat", "cat");
+
+        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
 
         defaultDeltaTime = Time.fixedDeltaTime;
         rayPositionOffset = transform.lossyScale.y * collider.radius * 0.8f;
     }
 
+    void Update()
+    {
+        animator.SetBool("isJumping", !IsOnGround());
+        animator.SetBool("isRunning", !Mathf.Approximately(rb.linearVelocityX, 0f));
+        animator.SetBool("canDash", canDash);
+        if (isMovingRight && movementX < 0)
+        {
+            isMovingRight = false;
+            spriteRenderer.flipX = true;
+        }
+        else if  (!isMovingRight && movementX > 0)
+        {
+            isMovingRight = true;
+            spriteRenderer.flipX = false;
+        }
+    }
+
     void FixedUpdate()
     {
-        rb.angularVelocity = -movementX * moveSpeed;
+        if (Math.Abs(rb.linearVelocityX) < Math.Abs(movementX * moveSpeed) || (Mathf.Approximately(movementX, 0) && !isDashing))
+        {
+             rb.linearVelocityX = movementX * moveSpeed;
+             isDashing = false;
+        }
     }
 
     void OnMove(InputValue value)
@@ -67,6 +100,7 @@ public class PlatformerController : MonoBehaviour
         if (IsOnGround() && value.isPressed)
         {
             rb.AddForceY(jumpForce, ForceMode2D.Impulse);
+            isJumping = true;
             return;
         } 
         RaycastHit2D groundRay = IsOnGround(maxGroundingDistance);
@@ -83,6 +117,7 @@ public class PlatformerController : MonoBehaviour
                 groundLine.enabled = false;
                 canGround = false;
             }
+            return;
         }
     }
 
@@ -146,6 +181,7 @@ public class PlatformerController : MonoBehaviour
             Debug.DrawRay(shortestHit.point, shortestHit.normal, Color.darkViolet, 3);
             dashRaycastHitName = shortestHit.collider.name;
         }
+        isDashing = true;
         canDash = false;
     }
 
@@ -173,11 +209,17 @@ public class PlatformerController : MonoBehaviour
     {
         Vector2 reflection = Vector2.Reflect(dashFacingVector, collision.GetContact(0).normal);
         rb.linearVelocity = 1.5f * dashForce * reflection;
+        isDashing = true;
         canDash = true;     //!Regains dash after rebounding off *any* object
         isRebounding = false;
     }
 
-    //Check if player is on ground using raycast. Only counts "Wall" layer.
+
+    /// <summary>
+    /// Check if player is on ground using linear raycast by feet. Only counts "Wall" layer.
+    /// </summary>
+    /// <param name="castLength">Determines length of the downward ray originating just below the player.</param>
+    /// <returns>RaycastHit2D returned from the Physics.Raycast</returns>
     public RaycastHit2D IsOnGround(float castLength = 0.2f)
     {
         Vector3 footPosition = transform.position + rayPositionOffset * Vector3.down;
@@ -187,5 +229,13 @@ public class PlatformerController : MonoBehaviour
     public float GetRayOffset()
     {
         return rayPositionOffset;
+    }
+
+    public void Respawn()
+    {
+        transform.position = respawnPoint.transform.position + Vector3.up;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = 0;
+        canDash = true;
     }
 }
