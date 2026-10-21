@@ -263,7 +263,7 @@ MonoBehaviour:
   active: 1
   redOutRedIn:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 80
   redOutGreenIn:
     m_OverrideState: 1
     m_Value: 0
@@ -275,7 +275,7 @@ MonoBehaviour:
     m_Value: 0
   greenOutGreenIn:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 80
   greenOutBlueIn:
     m_OverrideState: 1
     m_Value: 0
@@ -287,7 +287,7 @@ MonoBehaviour:
     m_Value: 0
   blueOutBlueIn:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 80
 --- !u!114 &-3978695733392391637
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -742,7 +742,7 @@ MonoBehaviour:
     m_Value: 0
   colorFilter:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 0}
   hueShift:
     m_OverrideState: 1
     m_Value: 0
