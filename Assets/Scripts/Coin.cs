@@ -8,7 +8,8 @@ public class Coin : MonoBehaviour
         PlatformerController player = collision.gameObject.GetComponent<PlatformerController>();
         if (player != null)
         {
-            player.coinsCollected++;
+            player.points++;
+            player.coinsCollected.Add(gameObject);
             Destroy(gameObject);   
         }
     }

@@ -27,7 +27,7 @@ public class HeartCollectible : MonoBehaviour
         PlatformerController player = collision.gameObject.GetComponent<PlatformerController>();
         if (player != null)
         {
-            player.coinsCollected++;
+            player.points++;
             ApplyAdditiveFilter(color);
             Destroy(gameObject);   
         }

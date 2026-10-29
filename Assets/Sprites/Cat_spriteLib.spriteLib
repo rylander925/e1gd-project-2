@@ -19,9 +19,9 @@ MonoBehaviour:
     m_OverrideEntries:
     - m_Name: cat
       m_Hash: 509494184
-      m_Sprite: {fileID: -6367560908665664636, guid: 3eafb11b1311f40788f0679d350851cd, type: 3}
+      m_Sprite: {fileID: -1369029124564446716, guid: 06b42a097f35d4eac9bd41c18e076a3c, type: 3}
       m_FromMain: 0
-      m_SpriteOverride: {fileID: -6367560908665664636, guid: 3eafb11b1311f40788f0679d350851cd, type: 3}
+      m_SpriteOverride: {fileID: -1369029124564446716, guid: 06b42a097f35d4eac9bd41c18e076a3c, type: 3}
     - m_Name: cat_mad
       m_Hash: 227584982
       m_Sprite: {fileID: -6056987297122131021, guid: 3eafb11b1311f40788f0679d350851cd, type: 3}
@@ -30,5 +30,5 @@ MonoBehaviour:
     m_FromMain: 0
     m_EntryOverrideCount: 2
   m_PrimaryLibraryGUID: 
-  m_ModificationHash: 639275798471386460
+  m_ModificationHash: 639281813232086600
   m_Version: 1

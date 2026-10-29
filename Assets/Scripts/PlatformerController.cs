@@ -25,6 +25,9 @@ public class PlatformerController : MonoBehaviour
     [SerializeField] SpriteRenderer spriteRenderer;
     [SerializeField] public RespawnPoint respawnPoint;
 
+    [SerializeField] public AudioSource audioSource;
+    [SerializeField] AudioClip jumpClip;
+
     public bool invertDash = true;
 
     bool isDashing = false;
@@ -38,7 +41,8 @@ public class PlatformerController : MonoBehaviour
     float initialTimeScale;
     float dashTimeScale = 0.5f;
 
-    public int coinsCollected = 0;
+    public int points = 0;
+    [NonSerialized] public List<GameObject> coinsCollected;
 
     float rayPositionOffset; //! might break if obj is a child component
     Vector3 dashFacingVector;
@@ -62,6 +66,8 @@ public class PlatformerController : MonoBehaviour
 
         defaultDeltaTime = Time.fixedDeltaTime;
         rayPositionOffset = transform.lossyScale.y * collider.radius * 0.8f;
+
+        coinsCollected = new List<GameObject>();
     }
 
     void Update()
@@ -101,6 +107,7 @@ public class PlatformerController : MonoBehaviour
         {
             rb.AddForceY(jumpForce, ForceMode2D.Impulse);
             isJumping = true;
+            audioSource.PlayOneShot(jumpClip);
             return;
         } 
         RaycastHit2D groundRay = IsOnGround(maxGroundingDistance);
